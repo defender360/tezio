@@ -1,0 +1,153 @@
+groups:
+  - name: itsm_platform_alerts
+    interval: 30s
+    rules:
+      # System alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current value: {{ $value }}%)"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% (current value: {{ $value }}%)"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is below 15% (current value: {{ $value }}%)"
+
+      # Database alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgresql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding"
+
+      - alert: PostgreSQLSlowQueries
+        expr: pg_stat_database_blks_hit{datname="itsm_platform"} / (pg_stat_database_blks_hit{datname="itsm_platform"} + pg_stat_database_blks_read{datname="itsm_platform"}) < 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL cache hit ratio is low"
+          description: "Cache hit ratio is below 90% (current value: {{ $value }})"
+
+      - alert: PostgreSQLTooManyConnections
+        expr: pg_stat_database_numbackends{datname="itsm_platform"} > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many PostgreSQL connections"
+          description: "Number of connections is high (current value: {{ $value }})"
+
+      # Redis alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache server is not responding"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is above 90% (current value: {{ $value }}%)"
+
+      # Application alerts
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 1 second (current value: {{ $value }}s)"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "5xx error rate is above 5% (current value: {{ $value }})"
+
+      - alert: QueueBacklog
+        expr: redis_queue_length{queue="default"} > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue backlog is growing"
+          description: "Queue has more than 1000 pending jobs (current value: {{ $value }})"
+
+      # Elasticsearch alerts
+      - alert: ElasticsearchDown
+        expr: up{job="elasticsearch"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch is down"
+          description: "Elasticsearch search engine is not responding"
+
+      - alert: ElasticsearchClusterHealthRed
+        expr: elasticsearch_cluster_health_status{status="red"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch cluster health is RED"
+          description: "Elasticsearch cluster is in RED state"
+
+      # Business metrics alerts
+      - alert: HighIncidentCreationRate
+        expr: rate(incidents_created_total[5m]) > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High incident creation rate"
+          description: "More than 10 incidents per minute are being created"
+
+      - alert: SLABreachRate
+        expr: rate(sla_breaches_total[1h]) > 5
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High SLA breach rate"
+          description: "More than 5 SLA breaches per hour"
+
+      - alert: LowCustomerSatisfaction
+        expr: avg(customer_satisfaction_score) < 3.5
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low customer satisfaction score"
+          description: "Average satisfaction score is below 3.5 (current value: {{ $value }})"

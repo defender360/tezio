@@ -1,0 +1,23 @@
+# Simple Dockerfile for quick build
+FROM php:8.3-fpm-alpine
+
+# Install only essential dependencies
+RUN apk add --no-cache git postgresql-dev libzip-dev zip \
+    && docker-php-ext-install pdo pdo_pgsql opcache zip pcntl exif
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Copy application
+COPY . .
+
+# Create directories and set permissions
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions \
+    storage/framework/views storage/app/public bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
+
+EXPOSE 9000
+CMD ["php-fpm"]

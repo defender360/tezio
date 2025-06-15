@@ -1,0 +1,77 @@
+# Development Dockerfile - Optimized
+FROM php:8.3-fpm-alpine
+
+# Install all dependencies in one layer
+RUN apk add --no-cache \
+    git curl zip unzip \
+    libpng-dev libzip-dev icu-dev oniguruma-dev postgresql-dev \
+    libxml2-dev freetype-dev libjpeg-turbo-dev \
+    nodejs npm linux-headers $PHPIZE_DEPS && \
+    # Configure and install PHP extensions in the same layer
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install -j$(nproc) \
+        pdo pdo_pgsql mbstring exif pcntl bcmath \
+        gd zip intl opcache soap sockets && \
+    # Install PECL extensions
+    pecl install redis xdebug pcov && \
+    docker-php-ext-enable redis xdebug pcov && \
+    # Clean up
+    apk del $PHPIZE_DEPS && \
+    rm -rf /tmp/pear
+
+# Configure PHP and Xdebug
+RUN { \
+        echo 'memory_limit=512M'; \
+        echo 'upload_max_filesize=100M'; \
+        echo 'post_max_size=100M'; \
+        echo 'max_execution_time=600'; \
+        echo 'display_errors=On'; \
+        echo 'display_startup_errors=On'; \
+        echo 'error_reporting=E_ALL'; \
+        echo 'log_errors=On'; \
+    } > /usr/local/etc/php/conf.d/docker-php-development.ini && \
+    { \
+        echo 'xdebug.mode=develop,debug,coverage'; \
+        echo 'xdebug.client_host=host.docker.internal'; \
+        echo 'xdebug.start_with_request=yes'; \
+        echo 'xdebug.log=/tmp/xdebug.log'; \
+    } > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Create non-root user
+RUN addgroup -g 1000 -S developer && \
+    adduser -u 1000 -S developer -G developer
+
+WORKDIR /var/www/html
+
+# Create directories with correct permissions
+RUN mkdir -p storage/app/public storage/framework/cache storage/framework/sessions \
+    storage/framework/views storage/logs bootstrap/cache && \
+    chown -R developer:developer /var/www/html
+
+USER developer
+
+# Copy composer files
+COPY --chown=developer:developer composer.json composer.lock* ./
+
+# Install dependencies conditionally
+RUN if [ -f "composer.json" ] && [ -s "composer.lock" ] && [ $(grep -c "packages" composer.lock) -gt 1 ]; then \
+        composer install --no-scripts --no-autoloader; \
+    fi
+
+# Copy application
+COPY --chown=developer:developer . .
+
+# Generate autoloader if vendor exists
+RUN if [ -d "vendor" ]; then \
+        composer dump-autoload --optimize; \
+    fi
+
+EXPOSE 9000
+
+HEALTHCHECK --interval=30s --timeout=3s --start_period=5s --retries=3 \
+    CMD php artisan health:check || exit 1
+
+CMD ["php-fpm"]

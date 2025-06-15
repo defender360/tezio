@@ -1,0 +1,43 @@
+Fase1,,,,
+Passo,Ação,Detalhes e Pontos de Atenção,Comandos claude-code Sugeridos,
+1,Setup do Projeto,"Criar a estrutura monorepo com frontend, backend (Laravel), ai-service (FastAPI).","claude-code scaffold itsm-platform --hybrid-arch=laravel,fastapi,vue",
+2,Infraestrutura como Código (IaC),"Configurar docker-compose.yml para desenvolvimento local e railway.toml para deploy, conforme deployment-guide.md.","claude-code generate docker-compose --with-services=laravel,fastapi,vue,postgres,redis",
+3,Core do Banco de Dados,"Implementar o schema base do PostgreSQL, incluindo a tabela tenants.",claude-code generate db-schema --core --with-tenants --rls-setup,
+4,Autenticação e Multi-Tenancy,Implementar o IAM (PRD-10) como o primeiro módulo funcional. Integrar com Auth0 e estabelecer o middleware de isolamento de tenant (RLS) no Laravel.,claude-code implement auth --provider=auth0 --multi-tenant-middleware --rls,
+5,CI/CD Pipeline,Criar o pipeline no GitHub Actions para testes e deploy automatizado para o ambiente dev no Railway.,claude-code generate ci-cd --platform=github-actions --deploy-to=railway,
+6,Guias de Desenvolvimento,Publicar e validar o developer-guide.md e o deployment-guide.md para o time.,claude-code generate project-docs --from-guides,
+,,,,
+Fase2,,,,
+Passo,Ação,PRDs de Referência,Detalhes e Pontos de Atenção,Comandos claude-code Sugeridos
+1,CMDB (Base),PRD-02,"Criar a tabela configuration_items. Inicialmente, foque na estrutura de dados, pois será a base para incidentes e mudanças.",claude-code generate itil-module cmdb --schema-only --relationships
+2,Core Service Desk & Incidentes,"PRD-01, PRD-04",Implementar o fluxo completo de criação e gestão de tickets de incidentes. Integrar com o CMDB para associar CIs afetados.,claude-code generate itil-module incident-management --full-crud --with-sla --link-to=cmdb
+3,Portal do Cliente,PRD-08,Desenvolver a interface Vue.js para que usuários possam abrir e acompanhar tickets. Foco na usabilidade.,"claude-code generate vue-views --module=customer-portal --features=ticket-submission,ticket-tracking"
+4.a,Workflows de Aprovação (Motor),PRD-23,Implementar o motor de workflows no backend. Essencial para o Change Management.,claude-code generate workflow-engine --visual-designer=false --state-machine
+4.b,Gestão de Mudanças (Change),PRD-03,"Implementar o fluxo de RFC (Request for Change), utilizando o motor de aprovação recém-criado.",claude-code generate itil-module change-management --use-workflow-engine --with-cab
+5,Dashboards & Relatórios (Básico),PRD-09,Criar os widgets e relatórios operacionais básicos para os módulos de Incidentes e Mudanças.,"claude-code generate dashboard --type=operational --modules=incident,change"
+,,,,
+Fase3,,,,
+Passo,Ação,PRDs de Referência,Detalhes e Pontos de Atenção,Comandos claude-code Sugeridos
+1,Knowledge Base & Service Catalog,"PRD-06, PRD-07",Implementar a base de conhecimento para deflexão de tickets e o catálogo de serviços para padronizar requisições.,claude-code generate itil-module knowledge-base --search=full-text --analytics
+2,Gestão de Problemas,PRD-05,"Introduzir o processo de gestão de problemas, ligando-o aos incidentes recorrentes.",claude-code generate itil-module problem-management --link-to=incident --with-rca
+3,Gestão de Ativos (Completo),PRD-22,"Expandir o CMDB para uma gestão de ativos completa, incluindo ciclo de vida e aspectos financeiros.",claude-code generate itil-module asset-management --with-lifecycle --link-to=financial
+4,Configuração das Integrações,blueprint.md,"No arquivo project.config.yml, definir as configurações para Datto RMM e Bitdefender, incluindo schedules e mappings.",claude-code configure integrations --from-blueprint
+5,Schema e Models de Integração,blueprint.md,"Criar as tabelas no schema integrations (datto_devices, bitdefender_endpoints, etc.).",claude-code generate db-schema --module=integrations --from-blueprint
+6,API Clients e Ações de Sincronização,blueprint.md,"Desenvolver os API clients para Datto e Bitdefender e as Actions/Jobs para sincronizar os dados de forma assíncrona usando a fila (datto_devices, bitdefender_incidents, etc.).",claude-code generate api-client --spec=datto_rmm.json --with-sync-jobs
+7,Hub de Comunicação (Básico),PRD-21,Implementar as notificações por e-mail e webhooks para os eventos gerados pelos módulos existentes.,"claude-code generate notifications --channels=email,webhook --module=communications-hub"
+,,,,
+Fase4,,,,
+Passo,Ação,PRDs de Referência,Detalhes e Pontos de Atenção,Comandos claude-code Sugeridos
+1,Motor de Automação,PRD-13,"Criar o motor base para executar workflows, conectando-se aos eventos da plataforma.","claude-code generate automation-engine --triggers=event,webhook --actions=api,db"
+2,API de Sugestões (AI),"system-design.md, api/endpoints.md","Implementar o endpoint /api/ai/suggestions no serviço FastAPI, integrando com o Claude AI para analisar tickets e sugerir resoluções.",claude-code generate fastapi-endpoint --path=/ai/suggestions --integration=claude
+3,AIOps (Detecção),PRD-14,Implementar a detecção de anomalias e correlação de eventos a partir dos dados de monitoramento e incidentes.,claude-code generate ai-feature --type=anomaly-detection --data-source=incidents
+4,Agente Virtual (MVP),PRD-15,Integrar um chatbot no portal do cliente que consiga responder a FAQs da Knowledge Base e abrir tickets.,"claude-code generate virtual-agent --channel=web-widget --skills=faq,create-ticket"
+5,Integração AI no Frontend,system-design.md,Modificar as telas de ticket no Vue.js para consumir e exibir as sugestões de IA para os agentes.,claude-code generate vue-component --name=AISuggestions --api=/ai/suggestions
+,,,,
+Fase5,,,,
+Passo,Ação,PRDs de Referência,Detalhes e Pontos de Atenção,Comandos claude-code Sugeridos
+1,Operações de Segurança (SOC),PRD-11,Integrar os dados de segurança do Bitdefender para criar um painel de operações de segurança.,claude-code generate dashboard --type=security-operations --data-source=bitdefender
+2,Gestão Financeira,PRD-20,"Vincular os custos aos ativos (CMDB) e serviços (Catálogo), e criar dashboards financeiros.","claude-code generate financial-module --features=chargeback,budgeting --link-to=asset,service"
+3,GRC (Governança e Risco),PRD-12,Implementar o registro de riscos e o mapeamento de controles de compliance.,"claude-code generate grc-module --features=risk-registry,compliance"
+4,Dashboard Executivo,PRD-19,Consolidar os KPIs de todos os módulos em uma visão estratégica para a liderança.,claude-code generate dashboard --type=executive --kpis=all-modules --real-time
+5,API Management & Hub (Final),"PRD-17, PRD-18",Finalizar o Hub de Integrações e criar o portal do desenvolvedor para a API pública.,claude-code generate developer-portal --from-openapi-spec

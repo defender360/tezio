@@ -1,0 +1,8 @@
+2024-01-14 10:45:23 ERROR: Connection timeout to database server
+2024-01-14 10:45:24 ERROR: Failed to establish connection after 3 retries
+2024-01-14 10:45:25 WARN: Switching to backup database server
+2024-01-14 10:45:26 INFO: Connected to backup database successfully
+2024-01-14 10:45:27 ERROR: Primary server health check failed
+2024-01-14 10:45:28 CRITICAL: Primary server is not responding
+2024-01-14 10:45:29 INFO: Initiating failover procedure
+2024-01-14 10:45:30 INFO: All services redirected to backup infrastructure

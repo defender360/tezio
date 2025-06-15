@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply text-gray-900 antialiased;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-tech-horizon-500 text-white font-medium rounded-md hover:bg-tech-horizon-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors;
+  }
+
+  .btn-primary-sm {
+    @apply px-3 py-1 bg-tech-horizon-500 text-white text-sm font-medium rounded-md hover:bg-tech-horizon-600 transition-colors;
+  }
+
+  .btn-secondary-sm {
+    @apply px-3 py-1 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors;
+  }
+
+  .input-field {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-tech-horizon-500 focus:ring-tech-horizon-500 sm:text-sm;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-defender-sm;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-gray-200;
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "context7": {
+    "enabled": true,
+    "workspace": {
+      "id": "${CONTEXT7_WORKSPACE_ID}",
+      "sync_interval": 30,
+      "auto_sync": true
+    },
+    "features": {
+      "code_context": true,
+      "file_tracking": true,
+      "semantic_search": true,
+      "project_insights": true
+    },
+    "filters": {
+      "include_patterns": [
+        "**/*.js", 
+        "**/*.ts", 
+        "**/*.vue",
+        "**/*.php", 
+        "**/*.py", 
+        "**/*.md",
+        "**/*.json",
+        "**/*.yaml",
+        "**/*.yml"
+      ],
+      "exclude_patterns": [
+        "node_modules/**", 
+        ".git/**", 
+        "*.log",
+        "vendor/**",
+        "storage/**",
+        "bootstrap/cache/**",
+        "dist/**",
+        "build/**"
+      ]
+    },
+    "project_context": {
+      "name": "Defender360 ITSM Platform",
+      "type": "multi-tenant-itsm",
+      "architecture": "microservices",
+      "stack": {
+        "frontend": "Vue 3 + TypeScript + Vite + TailwindCSS",
+        "backend": "Laravel 11 + PostgreSQL + Redis",
+        "auth": "Auth0",
+        "deployment": "Docker Compose",
+        "ai": "FastAPI + Python"
+      },
+      "patterns": {
+        "coding_style": "PSR-12 for PHP, ESLint + Prettier for TypeScript",
+        "architecture": "Domain-Driven Design with Actions and DTOs",
+        "database": "UUID primary keys, soft deletes, multi-tenancy",
+        "api": "RESTful with Laravel API Resources",
+        "frontend": "Composition API, TypeScript strict mode"
+      }
+    },
+    "advanced": {
+      "batch_size": 100,
+      "timeout": 30000,
+      "retry_attempts": 3,
+      "cache_duration": 3600,
+      "webhook_url": null
+    }
+  }
+}

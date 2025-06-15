@@ -1,0 +1,95 @@
+# ======================== Elasticsearch Configuration =========================
+#
+# NOTE: Elasticsearch comes with reasonable defaults for most settings.
+#       Before you set out to tweak and tune the configuration, make sure you
+#       understand what are you trying to accomplish and the consequences.
+
+# ---------------------------------- Cluster -----------------------------------
+#
+# Use a descriptive name for your cluster:
+#
+cluster.name: itsm-cluster
+
+# ------------------------------------ Node ------------------------------------
+#
+# Use a descriptive name for the node:
+#
+node.name: itsm-node
+
+# ----------------------------------- Paths ------------------------------------
+#
+# Path to directory where to store the data (separate multiple locations by comma):
+#
+path.data: /usr/share/elasticsearch/data
+
+# Path to log files:
+#
+path.logs: /usr/share/elasticsearch/logs
+
+# ----------------------------------- Memory -----------------------------------
+#
+# Lock the memory on startup:
+#
+bootstrap.memory_lock: true
+
+# ---------------------------------- Network -----------------------------------
+#
+# By default Elasticsearch is only accessible on localhost. Set a different
+# address here to expose this node on the network:
+#
+network.host: 0.0.0.0
+
+# --------------------------------- Discovery ----------------------------------
+#
+# Pass an initial list of hosts to perform discovery when this node is started:
+# The default list of hosts is ["127.0.0.1", "[::1]"]
+#
+discovery.type: single-node
+
+# ---------------------------------- Various -----------------------------------
+#
+# Allow wildcard deletion of indices:
+#
+action.destructive_requires_name: false
+
+# ---------------------------------- Security ----------------------------------
+#
+# Disable X-Pack security features
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Enable monitoring features
+xpack.monitoring.enabled: true
+xpack.monitoring.collection.enabled: true
+
+# ---------------------------------- Index Settings ----------------------------
+#
+# Number of shards and replicas for knowledge base indices
+index.number_of_shards: 1
+index.number_of_replicas: 0
+
+# ---------------------------------- Performance -------------------------------
+#
+# Thread pool settings for search operations
+thread_pool.search.size: 5
+thread_pool.search.queue_size: 100
+
+# Indexing buffer settings
+indices.memory.index_buffer_size: 10%
+indices.memory.min_index_buffer_size: 48mb
+
+# ---------------------------------- HTTP --------------------------------------
+#
+# Enable HTTP compression
+http.compression: true
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+http.cors.allow-headers: "X-Requested-With, Content-Type, Content-Length, Authorization"
+
+# ---------------------------------- Logging -----------------------------------
+#
+# Log level settings
+logger.level: INFO
+logger.action.level: DEBUG

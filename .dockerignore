@@ -1,0 +1,73 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+Dockerfile.*
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.project
+.settings
+.classpath
+.c9/
+*.launch
+.vscode/*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.phpunit.result.cache
+.pest
+
+# Laravel
+vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+storage/*.key
+.env
+.env.*
+!.env.example
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Production
+*.log
+*.cache
+
+# Compiled assets
+public/hot
+public/storage
+public/mix-manifest.json
+public/css/app.css
+public/js/app.js
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Misc
+.editorconfig
+.styleci.yml
+coverage/
+database/*.sqlite
+database/*.sqlite-journal

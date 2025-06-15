@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "context7-mcp-server",
+      "args": ["--config", "./context7-config.json"],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}",
+        "CONTEXT7_WORKSPACE_ID": "${CONTEXT7_WORKSPACE_ID}",
+        "CONTEXT7_BASE_URL": "${CONTEXT7_BASE_URL}"
+      }
+    }
+  }
+}

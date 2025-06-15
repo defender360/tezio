@@ -1,0 +1,109 @@
+# Development Dockerfile
+FROM php:8.3-fpm-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    icu-dev \
+    oniguruma-dev \
+    postgresql-dev \
+    libxml2-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    nodejs \
+    npm \
+    linux-headers \
+    $PHPIZE_DEPS
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    zip \
+    intl \
+    opcache \
+    soap \
+    sockets
+
+# Install PECL extensions
+RUN pecl channel-update pecl.php.net && \
+    pecl install redis-6.0.2 && \
+    pecl install xdebug-3.3.1 && \
+    pecl install pcov && \
+    docker-php-ext-enable redis xdebug pcov && \
+    rm -rf /tmp/pear
+
+# Configure Xdebug
+RUN echo "xdebug.mode=develop,debug,coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Configure PHP for development
+RUN echo "memory_limit=512M" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "upload_max_filesize=100M" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "max_execution_time=600" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "display_errors=On" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "display_startup_errors=On" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "error_reporting=E_ALL" >> /usr/local/etc/php/conf.d/docker-php-development.ini \
+    && echo "log_errors=On" >> /usr/local/etc/php/conf.d/docker-php-development.ini
+
+# Create non-root user for development
+RUN addgroup -g 1000 -S developer && \
+    adduser -u 1000 -S developer -G developer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Create necessary directories and set permissions
+RUN mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R developer:developer /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
+
+# Switch to non-root user
+USER developer
+
+# Copy composer files first for better caching
+COPY --chown=developer:developer composer.json composer.lock* ./
+
+# Install dependencies (skip if composer.json doesn't have dependencies yet)
+RUN if [ -f "composer.json" ] && [ -s "composer.lock" ] && [ $(grep -c "packages" composer.lock) -gt 1 ]; then \
+        composer install --no-scripts --no-autoloader; \
+    else \
+        echo "Skipping composer install - no dependencies yet"; \
+    fi
+
+# Copy the rest of the application
+COPY --chown=developer:developer . .
+
+# Generate autoloader if vendor exists
+RUN if [ -d "vendor" ]; then \
+        composer dump-autoload --optimize; \
+    else \
+        echo "Skipping autoload generation - vendor directory not found"; \
+    fi
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD php artisan health:check || exit 1
+
+# Start PHP-FPM
+CMD ["php-fpm"]

@@ -1,0 +1,26 @@
+# Quick Development Dockerfile - Minimal for testing
+FROM php:8.3-fpm-alpine
+
+# Install only essential dependencies
+RUN apk add --no-cache \
+    git \
+    postgresql-dev \
+    && docker-php-ext-install pdo pdo_pgsql opcache
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Configure PHP
+RUN echo "memory_limit=256M" > /usr/local/etc/php/conf.d/docker-php-dev.ini
+
+WORKDIR /var/www/html
+
+# Copy application
+COPY . .
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+
+EXPOSE 9000
+CMD ["php-fpm"]

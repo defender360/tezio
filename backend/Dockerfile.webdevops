@@ -1,0 +1,24 @@
+# Using pre-built image with PHP extensions
+FROM webdevops/php:8.3-alpine
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install additional packages we need
+RUN apk add --no-cache postgresql-dev \
+    && docker-php-ext-install pdo_pgsql
+
+WORKDIR /var/www/html
+
+# Copy application
+COPY --chown=application:application . .
+
+# Create directories if they don't exist
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && chown -R application:application storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+USER application
+
+EXPOSE 9000
+CMD ["php-fpm"]
