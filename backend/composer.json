@@ -4,15 +4,21 @@
     "description": "Defender360 ITSM Platform - Enterprise IT Service Management Solution",
     "require": {
         "php": "^8.3",
+        "darkaonline/l5-swagger": "^9.0",
         "elasticsearch/elasticsearch": "^8.12",
         "firebase/php-jwt": "^6.11",
+        "geoip2/geoip2": "^3.0",
         "guzzlehttp/guzzle": "^7.8",
+        "jenssegers/agent": "*",
         "laravel/framework": "^11.0",
         "laravel/horizon": "^5.24",
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.15",
         "laravel/tinker": "^2.9",
         "predis/predis": "^2.2",
+        "promphp/prometheus_client_php": "*",
+        "sendgrid/sendgrid": "^8.1",
+        "spatie/data-transfer-object": "^3.9",
         "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-permission": "^6.4",
@@ -23,7 +29,7 @@
         "fakerphp/faker": "^1.23",
         "laravel/pint": "^1.14",
         "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.1",
+        "nunomaduro/collision": "^8.8",
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
@@ -58,7 +64,11 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true

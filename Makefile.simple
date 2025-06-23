@@ -1,0 +1,110 @@
+# Makefile for Simplified Tezio ITSM Platform
+
+.PHONY: help setup up down restart logs ps clean build migrate seed db shell frontend-shell backend-shell redis-cli
+
+# Default target
+.DEFAULT_GOAL := help
+
+# Variables
+DOCKER_COMPOSE = docker-compose -f docker-compose.simple.yml
+BACKEND_CONTAINER = itsm_backend
+FRONTEND_CONTAINER = itsm_frontend
+DB_CONTAINER = itsm_postgres
+
+help: ## Show this help message
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+setup: ## Initial setup - build, start services, run migrations and seeders
+	@echo "🚀 Setting up Tezio ITSM Platform (Simplified)..."
+	@$(DOCKER_COMPOSE) build
+	@$(DOCKER_COMPOSE) up -d
+	@echo "⏳ Waiting for services to be ready..."
+	@sleep 10
+	@make migrate
+	@make seed
+	@echo "✅ Setup complete! Access the application at http://localhost"
+
+up: ## Start all services
+	@echo "🚀 Starting services..."
+	@$(DOCKER_COMPOSE) up -d
+	@echo "✅ Services started!"
+
+down: ## Stop all services
+	@echo "🛑 Stopping services..."
+	@$(DOCKER_COMPOSE) down
+	@echo "✅ Services stopped!"
+
+restart: ## Restart all services
+	@echo "🔄 Restarting services..."
+	@$(DOCKER_COMPOSE) restart
+	@echo "✅ Services restarted!"
+
+logs: ## Show logs from all services
+	@$(DOCKER_COMPOSE) logs -f
+
+ps: ## Show running services
+	@$(DOCKER_COMPOSE) ps
+
+clean: ## Stop services and remove volumes (WARNING: This will delete all data!)
+	@echo "⚠️  WARNING: This will delete all data!"
+	@echo "Press Ctrl+C to cancel or Enter to continue..."
+	@read confirm
+	@$(DOCKER_COMPOSE) down -v
+	@echo "✅ All services stopped and volumes removed!"
+
+build: ## Rebuild all services
+	@echo "🔨 Building services..."
+	@$(DOCKER_COMPOSE) build
+	@echo "✅ Build complete!"
+
+migrate: ## Run database migrations
+	@echo "🗄️  Running migrations..."
+	@$(DOCKER_COMPOSE) exec $(BACKEND_CONTAINER) php artisan migrate --force
+	@echo "✅ Migrations complete!"
+
+seed: ## Seed the database
+	@echo "🌱 Seeding database..."
+	@$(DOCKER_COMPOSE) exec $(BACKEND_CONTAINER) php artisan db:seed --force
+	@echo "✅ Database seeded!"
+
+db: ## Access PostgreSQL CLI
+	@$(DOCKER_COMPOSE) exec $(DB_CONTAINER) psql -U itsm_user -d itsm_platform
+
+shell: backend-shell ## Alias for backend-shell
+
+frontend-shell: ## Access frontend container shell
+	@$(DOCKER_COMPOSE) exec $(FRONTEND_CONTAINER) sh
+
+backend-shell: ## Access backend container shell
+	@$(DOCKER_COMPOSE) exec $(BACKEND_CONTAINER) sh
+
+redis-cli: ## Access Redis CLI
+	@$(DOCKER_COMPOSE) exec redis redis-cli
+
+# Development helpers
+artisan: ## Run artisan commands (usage: make artisan cmd="route:list")
+	@$(DOCKER_COMPOSE) exec $(BACKEND_CONTAINER) php artisan $(cmd)
+
+npm: ## Run npm commands in frontend (usage: make npm cmd="install package-name")
+	@$(DOCKER_COMPOSE) exec $(FRONTEND_CONTAINER) npm $(cmd)
+
+composer: ## Run composer commands (usage: make composer cmd="require package-name")
+	@$(DOCKER_COMPOSE) exec $(BACKEND_CONTAINER) composer $(cmd)
+
+# Quick status checks
+check-backend: ## Check backend health
+	@curl -s http://localhost:8000/api/health | jq . || echo "Backend not responding"
+
+check-frontend: ## Check frontend health
+	@curl -s http://localhost/ > /dev/null && echo "Frontend is running ✅" || echo "Frontend not responding ❌"
+
+status: ## Check all services status
+	@echo "📊 Services Status:"
+	@echo "==================="
+	@make check-frontend
+	@make check-backend
+	@echo ""
+	@make ps
