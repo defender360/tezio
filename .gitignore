@@ -188,6 +188,12 @@ temp/
 *.temp
 *.cache
 
+# Claude Code Configuration (com credenciais)
+.claude/mcp-settings.json
+.claude/settings.local.json
+.claude_mcp_config.json
+.claude/mcp.json
+
 # MacOS
 .DS_Store
 .AppleDouble
